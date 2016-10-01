@@ -58,6 +58,7 @@ func (xhs *XHttpServer) httpWrap(handler HttpHandler) func(rsp http.ResponseWrit
 		defer func() {
 			plog.Debugf("[XHttpServer][httpWrap] http: request url[%s] use_time[%v]", logURL, time.Now().Sub(start))
 		}()
+		plog.Debugf("client ip: %s\n", strings.Split(req.RemoteAddr, ":")[0])
 		obj, err := handler(rsp, req)
 		// check err
 	HAS_ERR:
