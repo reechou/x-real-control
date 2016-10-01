@@ -69,7 +69,6 @@ func (xhs *XHttpServer) addVideoContent(rsp http.ResponseWriter, req *http.Reque
 	type AddVideoReq struct {
 		GroupID int64       `json:"groupID"`
 		VInfo   interface{} `json:"video"`
-		Type    int64       `json:"type"`
 	}
 	result, err := ioutil.ReadAll(req.Body)
 	if err != nil {
@@ -95,7 +94,7 @@ func (xhs *XHttpServer) addVideoContent(rsp http.ResponseWriter, req *http.Reque
 	content := &ContentInfo{
 		GroupID: info.GroupID,
 		Value:   string(valueBytes),
-		Type:    info.Type,
+		Type:    CONTENT_TYPE_VIDEO,
 	}
 	err = xhs.logic.cdb.InsertContent(content)
 	if err != nil {

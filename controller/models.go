@@ -46,6 +46,7 @@ type Video struct {
 	VideoSrc string `json:"videoSrc"`
 	ImageUrl string `json:"imageUrl"`
 	TitleImg string `json:"titleImg"`
+	Type     int64  `json:"type"`
 }
 
 type ContentInfo struct {
