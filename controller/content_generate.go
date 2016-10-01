@@ -99,6 +99,7 @@ func (cg *ContentGenerate) saveAndPublish(list *ContentList) error {
 			if err != nil {
 				continue
 			}
+			info.ID = v.ID
 			dataList = append(dataList, info)
 		}
 	}
@@ -107,15 +108,6 @@ func (cg *ContentGenerate) saveAndPublish(list *ContentList) error {
 		return err
 	}
 	filename := cg.groupInfo.Name + ".json"
-
-	//result := string(dataListBytes)
-	//f, err := os.OpenFile(CacheDir+"/"+filename, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, os.ModePerm)
-	//if err != nil {
-	//	return err
-	//}
-	//f.WriteString(result)
-	//f.Close()
-	//plog.Infof("save file[%s] success.\n", filename)
 
 	bucket, err := cg.aliyunInfo.aliyunClient.Bucket(cg.aliyunInfo.Bucket)
 	if err != nil {
