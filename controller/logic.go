@@ -208,6 +208,7 @@ func (cl *ControllerLogic) onRefresh() {
 				cl.contentMap[v.ID] = &ContentMapInfo{
 					groupInfo:   v,
 					contentList: contentList,
+					cg:          NewContentGenerate(v, cl.cdb, cl.w, cl, cl.aliyunOss),
 				}
 				cl.contentGroupList = append(cl.contentGroupList, v.ID)
 				cl.Unlock()

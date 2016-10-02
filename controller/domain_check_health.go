@@ -69,7 +69,7 @@ func (dch *DomainCheckHealth) onCheck() {
 		return
 	}
 	if dch.groupInfo.Status != DOMAIN_STATUS_OK {
-		plog.Infof("group[%s][%d] is setted offline.\n", dch.groupInfo.Name, dch.groupInfo.ID)
+		plog.Infof("domain group[%s][%d] is setted offline.\n", dch.groupInfo.Name, dch.groupInfo.ID)
 		return
 	}
 	//plog.Debugf("on check get group: %v\n", dch.groupInfo)

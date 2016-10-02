@@ -50,6 +50,9 @@ func (cg *ContentGenerate) init() {
 	if err != nil {
 		plog.Panic("aliyun set oss cors rule error.", err)
 	}
+	
+	// first init json url file
+	cg.onCheck()
 }
 
 func (cg *ContentGenerate) Stop() {
