@@ -15,7 +15,8 @@ const (
 )
 
 type DomainCheckHealth struct {
-	groupInfo *DomainGroupInfo
+	groupInfo  *DomainGroupInfo
+	updateTime int64
 
 	cdb   *ControllerDB
 	w     *utils.TimingWheel
@@ -68,6 +69,7 @@ func (dch *DomainCheckHealth) onCheck() {
 		return
 	}
 	if dch.groupInfo.Status != DOMAIN_STATUS_OK {
+		plog.Infof("group[%s][%d] is setted offline.\n", dch.groupInfo.Name, dch.groupInfo.ID)
 		return
 	}
 	//plog.Debugf("on check get group: %v\n", dch.groupInfo)
@@ -83,18 +85,22 @@ func (dch *DomainCheckHealth) onCheck() {
 	}
 
 	// check
+	checkUpdate := false
 	for _, v := range list.DomainList {
 		ok := dch.checkHealth(v)
 		if !ok {
 			if v.Status != DOMAIN_STATUS_DOWN {
 				v.Status = DOMAIN_STATUS_DOWN
 				dch.cdb.UpdateDomainStatus(v)
+				checkUpdate = true
 			}
 		}
 	}
 
 	// update
-	dch.logic.UpdateDomainGroup(dch.groupInfo, list)
+	if checkUpdate || (list.UpdateTime > dch.updateTime) {
+		dch.logic.UpdateDomainGroup(dch.groupInfo, list)
+	}
 }
 
 type DomainHealthResponse struct {

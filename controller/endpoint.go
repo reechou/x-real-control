@@ -106,6 +106,33 @@ func (xhs *XHttpServer) addVideoContent(rsp http.ResponseWriter, req *http.Reque
 	return response, nil
 }
 
+func (xhs *XHttpServer) getDomainGroupDetail(rsp http.ResponseWriter, req *http.Request) (interface{}, error) {
+	response := &Response{Code: RES_OK}
+	type GetDomainGroupReq struct {
+		GroupID int64 `json:"groupID"`
+	}
+	var info GetDomainGroupReq
+	if err := xhs.decodeBody(req, &info, nil); err != nil {
+		response.Code = RES_ERR
+		response.Msg = fmt.Sprintf("Request decode failed: %v", err)
+		return response, nil
+	}
+	
+	domainGroupInfo := &DomainGroupInfo{
+		ID: info.GroupID,
+	}
+	err := xhs.logic.cdb.GetDomainGroupFromID(domainGroupInfo)
+	if err != nil {
+		plog.Errorf("get domain groups error: %v\n", err)
+		response.Code = RES_ERR
+		response.Msg = fmt.Sprintf("get domain groups error: %v\n", err)
+	} else {
+		response.Data = domainGroupInfo
+	}
+	
+	return response, nil
+}
+
 func (xhs *XHttpServer) getDomainGroup(rsp http.ResponseWriter, req *http.Request) (interface{}, error) {
 	response := &Response{Code: RES_OK}
 	list, _, err := xhs.logic.cdb.GetDomainGroupList(0)

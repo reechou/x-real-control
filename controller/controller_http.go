@@ -40,6 +40,7 @@ func (xhs *XHttpServer) registerHandlers() {
 	xhs.hs.Route("/domain/add_domain_group", xhs.httpWrap(xhs.addDomainGroup))
 	xhs.hs.Route("/domain/add_domain", xhs.httpWrap(xhs.addDomain))
 	xhs.hs.Route("/domain/get_domain_groups", xhs.httpWrap(xhs.getDomainGroup))
+	xhs.hs.Route("/domain/get_domain_group_detail", xhs.httpWrap(xhs.getDomainGroupDetail))
 	xhs.hs.Route("/domain/get_domain_list", xhs.httpWrap(xhs.getDomainList))
 	xhs.hs.Route("/domain/off_domain_group", xhs.httpWrap(xhs.offDomainGroup))
 	xhs.hs.Route("/domain/off_domain", xhs.httpWrap(xhs.offDomain))

@@ -125,7 +125,7 @@ func (cdb *ControllerDB) GetDomainGroupList(maxID int64) ([]*DomainGroupInfo, in
 }
 
 func (cdb *ControllerDB) GetDomainList(list *DomainList) error {
-	rows, err := cdb.db.FetchRows("select id,domain,status,time from domain where group_id=?", list.GroupID)
+	rows, err := cdb.db.FetchRows("select id,domain,status,time,UNIX_TIMESTAMP(time) as utime from domain where group_id=?", list.GroupID)
 	if err != nil {
 		return err
 	}
@@ -137,6 +137,13 @@ func (cdb *ControllerDB) GetDomainList(list *DomainList) error {
 		status, err := strconv.ParseInt(v["status"], 10, 0)
 		if err != nil {
 			continue
+		}
+		uTime, err := strconv.ParseInt(v["utime"], 10, 0)
+		if err != nil {
+			continue
+		}
+		if uTime > list.UpdateTime {
+			list.UpdateTime = uTime
 		}
 		info := &DomainInfo{
 			ID:      id,

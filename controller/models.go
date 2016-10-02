@@ -29,6 +29,7 @@ type DomainInfo struct {
 type DomainList struct {
 	GroupID    int64         `json:"groupID"`
 	DomainList []*DomainInfo `json:"domainList"`
+	UpdateTime int64
 }
 
 type ContentGroupInfo struct {
