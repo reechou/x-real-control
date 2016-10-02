@@ -186,7 +186,7 @@ func (xhs *XHttpServer) offDomain(rsp http.ResponseWriter, req *http.Request) (i
 	return response, nil
 }
 
-func (xhs *XHttpServer) offDomainGroup(rsp http.ResponseWriter, req *http.Request) (interface{}, error) {
+func (xhs *XHttpServer) settingDomainGroup(rsp http.ResponseWriter, req *http.Request) (interface{}, error) {
 	response := &Response{Code: RES_OK}
 	var info DomainGroupInfo
 	if err := xhs.decodeBody(req, &info, nil); err != nil {
