@@ -123,9 +123,9 @@ func (xhs *XHttpServer) getDomainGroupDetail(rsp http.ResponseWriter, req *http.
 	}
 	err := xhs.logic.cdb.GetDomainGroupFromID(domainGroupInfo)
 	if err != nil {
-		plog.Errorf("get domain groups error: %v\n", err)
+		plog.Errorf("get domain group detail error: %v\n", err)
 		response.Code = RES_ERR
-		response.Msg = fmt.Sprintf("get domain groups error: %v\n", err)
+		response.Msg = fmt.Sprintf("get domain group detail error: %v\n", err)
 	} else {
 		response.Data = domainGroupInfo
 	}
@@ -192,6 +192,12 @@ func (xhs *XHttpServer) settingDomainGroup(rsp http.ResponseWriter, req *http.Re
 	if err := xhs.decodeBody(req, &info, nil); err != nil {
 		response.Code = RES_ERR
 		response.Msg = fmt.Sprintf("Request decode failed: %v", err)
+		return response, nil
+	}
+	
+	if info.ID == 0 {
+		response.Code = RES_ERR
+		response.Msg = fmt.Sprintf("domain group id cannot be 0.")
 		return response, nil
 	}
 

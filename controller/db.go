@@ -225,7 +225,7 @@ func (cdb *ControllerDB) UpdateDomainStatus(info *DomainInfo) error {
 }
 
 func (cdb *ControllerDB) UpdateDomainGroupStatus(info *DomainGroupInfo) error {
-	_, err := cdb.db.Exec("update domain_group set stauts=?,share_status=?,ads_status=? where id=?", info.Status, info.ShareStatus, info.AdsStatus, info.ID)
+	_, err := cdb.db.Exec("update domain_group set status=?,share_status=?,ads_status=? where id=?", info.Status, info.ShareStatus, info.AdsStatus, info.ID)
 	if err != nil {
 		return err
 	}
