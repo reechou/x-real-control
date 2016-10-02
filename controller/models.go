@@ -66,6 +66,7 @@ type ContentList struct {
 
 type RealContentInfo struct {
 	ContentUrl   string `json:"contentUrl"`
+	IfOffLine    bool   `json:"ifOffLine"`
 	IfForceShare bool   `json:"ifForceShare"`
 	IfShowAds    bool   `json:"ifShowAds"`
 }

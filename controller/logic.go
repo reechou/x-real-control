@@ -313,6 +313,9 @@ func (cl *ControllerLogic) GetContent(id int64) (*RealContentInfo, error) {
 	if v != nil {
 		rci.IfForceShare = (v.groupInfo.ShareStatus == 0)
 		rci.IfShowAds = (v.groupInfo.AdsStatus == 0)
+		if v.groupInfo.Status != DOMAIN_STATUS_OK {
+			rci.IfOffLine = true
+		}
 	}
 	return rci, nil
 }
