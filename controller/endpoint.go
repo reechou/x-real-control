@@ -211,6 +211,33 @@ func (xhs *XHttpServer) settingDomainGroup(rsp http.ResponseWriter, req *http.Re
 	return response, nil
 }
 
+func (xhs *XHttpServer) getContentGroupDetail(rsp http.ResponseWriter, req *http.Request) (interface{}, error) {
+	response := &Response{Code: RES_OK}
+	type GetContentGroupReq struct {
+		GroupID int64 `json:"groupID"`
+	}
+	var info GetContentGroupReq
+	if err := xhs.decodeBody(req, &info, nil); err != nil {
+		response.Code = RES_ERR
+		response.Msg = fmt.Sprintf("Request decode failed: %v", err)
+		return response, nil
+	}
+	
+	contentGroupInfo := &ContentGroupInfo{
+		ID: info.GroupID,
+	}
+	err := xhs.logic.cdb.GetContentGroupFromID(contentGroupInfo)
+	if err != nil {
+		plog.Errorf("get content group detail error: %v\n", err)
+		response.Code = RES_ERR
+		response.Msg = fmt.Sprintf("get content group detail error: %v\n", err)
+	} else {
+		response.Data = contentGroupInfo
+	}
+	
+	return response, nil
+}
+
 func (xhs *XHttpServer) getContentGroup(rsp http.ResponseWriter, req *http.Request) (interface{}, error) {
 	response := &Response{Code: RES_OK}
 	list, _, err := xhs.logic.cdb.GetContentGroupList(0)

@@ -157,6 +157,22 @@ func (cdb *ControllerDB) GetDomainList(list *DomainList) error {
 	return nil
 }
 
+func (cdb *ControllerDB) GetContentGroupFromID(info *ContentGroupInfo) error {
+	row, err := cdb.db.FetchRow("select name,json_url,type,time from content_group where id=?", info.ID)
+	if err != nil {
+		return err
+	}
+	t, err := strconv.ParseInt((*row)["type"], 10, 0)
+	if err != nil {
+		return err
+	}
+	info.Name = (*row)["name"]
+	info.JsonUrl = (*row)["json_url"]
+	info.Type = t
+	info.Time = (*row)["time"]
+	return nil
+}
+
 func (cdb *ControllerDB) GetContentGroupList(maxID int64) ([]*ContentGroupInfo, int64, error) {
 	rows, err := cdb.db.FetchRows("select id,name,json_url,time from content_group where id>?", maxID)
 	if err != nil {

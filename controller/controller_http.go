@@ -46,6 +46,7 @@ func (xhs *XHttpServer) registerHandlers() {
 	xhs.hs.Route("/domain/off_domain", xhs.httpWrap(xhs.offDomain))
 	xhs.hs.Route("/domain/get_url", xhs.httpWrap(xhs.getURL))
 	xhs.hs.Route("/domain/add_content_group", xhs.httpWrap(xhs.addContentGroup))
+	xhs.hs.Route("/domain/get_content_group_detail", xhs.httpWrap(xhs.getContentGroupDetail))
 	xhs.hs.Route("/domain/add_video_content", xhs.httpWrap(xhs.addVideoContent))
 	xhs.hs.Route("/domain/get_content_group", xhs.httpWrap(xhs.getContentGroup))
 	xhs.hs.Route("/domain/get_content_list", xhs.httpWrap(xhs.getContentList))
