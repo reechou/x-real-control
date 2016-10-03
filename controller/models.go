@@ -41,7 +41,7 @@ type ContentGroupInfo struct {
 }
 
 type Video struct {
-	Content string `json:"content"`
+	Content  string `json:"content"`
 	ID       int64  `json:"id"`
 	Title    string `json:"title"`
 	VideoSrc string `json:"videoSrc"`

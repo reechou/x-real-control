@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strings"
 )
 
 func (xhs *XHttpServer) addDomainGroup(rsp http.ResponseWriter, req *http.Request) (interface{}, error) {
@@ -117,7 +118,7 @@ func (xhs *XHttpServer) getDomainGroupDetail(rsp http.ResponseWriter, req *http.
 		response.Msg = fmt.Sprintf("Request decode failed: %v", err)
 		return response, nil
 	}
-	
+
 	domainGroupInfo := &DomainGroupInfo{
 		ID: info.GroupID,
 	}
@@ -129,7 +130,7 @@ func (xhs *XHttpServer) getDomainGroupDetail(rsp http.ResponseWriter, req *http.
 	} else {
 		response.Data = domainGroupInfo
 	}
-	
+
 	return response, nil
 }
 
@@ -194,7 +195,7 @@ func (xhs *XHttpServer) settingDomainGroup(rsp http.ResponseWriter, req *http.Re
 		response.Msg = fmt.Sprintf("Request decode failed: %v", err)
 		return response, nil
 	}
-	
+
 	if info.ID == 0 {
 		response.Code = RES_ERR
 		response.Msg = fmt.Sprintf("domain group id cannot be 0.")
@@ -222,7 +223,7 @@ func (xhs *XHttpServer) getContentGroupDetail(rsp http.ResponseWriter, req *http
 		response.Msg = fmt.Sprintf("Request decode failed: %v", err)
 		return response, nil
 	}
-	
+
 	contentGroupInfo := &ContentGroupInfo{
 		ID: info.GroupID,
 	}
@@ -234,7 +235,7 @@ func (xhs *XHttpServer) getContentGroupDetail(rsp http.ResponseWriter, req *http
 	} else {
 		response.Data = contentGroupInfo
 	}
-	
+
 	return response, nil
 }
 
@@ -307,7 +308,7 @@ func (xhs *XHttpServer) getData(rsp http.ResponseWriter, req *http.Request) (int
 		return response, nil
 	}
 
-	data, err := xhs.logic.GetContent(info.GroupID)
+	data, err := xhs.logic.GetContent(info.GroupID, strings.Split(req.RemoteAddr, ":")[0])
 	if err != nil {
 		response.Code = RES_ERR
 		response.Msg = fmt.Sprintf("get content failed: %v", err)

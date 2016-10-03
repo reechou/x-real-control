@@ -6,6 +6,7 @@ import (
 
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
 	"github.com/reechou/x-real-control/utils"
+	"github.com/reechou/x-real-control/config"
 )
 
 type ContentGenerate struct {
@@ -15,13 +16,13 @@ type ContentGenerate struct {
 	cdb       *ControllerDB
 
 	updateTime int64
-	aliyunInfo *AliyunOss
+	aliyunInfo *config.AliyunOss
 
 	stop chan struct{}
 	done chan struct{}
 }
 
-func NewContentGenerate(groupInfo *ContentGroupInfo, cdb *ControllerDB, w *utils.TimingWheel, logic *ControllerLogic, aliyunInfo *AliyunOss) *ContentGenerate {
+func NewContentGenerate(groupInfo *ContentGroupInfo, cdb *ControllerDB, w *utils.TimingWheel, logic *ControllerLogic, aliyunInfo *config.AliyunOss) *ContentGenerate {
 	cg := &ContentGenerate{
 		groupInfo:  groupInfo,
 		cdb:        cdb,
@@ -46,11 +47,11 @@ func (cg *ContentGenerate) init() {
 		MaxAgeSeconds: 200,
 	}
 
-	err := cg.aliyunInfo.aliyunClient.SetBucketCORS(cg.aliyunInfo.Bucket, []oss.CORSRule{rule1})
+	err := cg.aliyunInfo.AliyunClient.SetBucketCORS(cg.aliyunInfo.Bucket, []oss.CORSRule{rule1})
 	if err != nil {
 		plog.Panic("aliyun set oss cors rule error.", err)
 	}
-	
+
 	// first init json url file
 	cg.onCheck()
 }
@@ -112,7 +113,7 @@ func (cg *ContentGenerate) saveAndPublish(list *ContentList) error {
 	}
 	filename := cg.groupInfo.Name + ".json"
 
-	bucket, err := cg.aliyunInfo.aliyunClient.Bucket(cg.aliyunInfo.Bucket)
+	bucket, err := cg.aliyunInfo.AliyunClient.Bucket(cg.aliyunInfo.Bucket)
 	if err != nil {
 		plog.Errorf("create bucket[%v] error: %v\n", cg.aliyunInfo, err)
 		return err
@@ -125,6 +126,7 @@ func (cg *ContentGenerate) saveAndPublish(list *ContentList) error {
 	plog.Infof("aliyun publish file[%s] success.\n", filename)
 	cg.groupInfo.JsonUrl = cg.aliyunInfo.Url + filename
 	cg.cdb.UpdateContentJsonUrl(cg.groupInfo)
+	plog.Infof("update content json url[%s] success.\n", cg.groupInfo.JsonUrl)
 
 	return nil
 }

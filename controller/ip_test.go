@@ -1,9 +1,9 @@
 package controller
 
 import (
-	"testing"
-	"github.com/wangtuanjie/ip17mon"
 	"fmt"
+	"github.com/wangtuanjie/ip17mon"
+	"testing"
 )
 
 func TestIP(t *testing.T) {

@@ -9,6 +9,8 @@ import (
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
 	"github.com/coreos/pkg/capnslog"
 	"github.com/reechou/x-real-control/utils"
+	"github.com/reechou/x-real-control/detector"
+	"github.com/reechou/x-real-control/config"
 )
 
 const (
@@ -33,13 +35,14 @@ type ContentMapInfo struct {
 type ControllerLogic struct {
 	sync.Mutex
 
-	cfg *config
+	cfg *config.Config
 
-	aliyunOss *AliyunOss
+	aliyunOss *config.AliyunOss
 
-	cdb     *ControllerDB
-	w       *utils.TimingWheel
-	xServer *XHttpServer
+	detector *detector.Detector
+	cdb      *ControllerDB
+	w        *utils.TimingWheel
+	xServer  *XHttpServer
 
 	domainMap       map[int64]*DomainMapInfo
 	domainGroupList []int64
@@ -55,12 +58,14 @@ type ControllerLogic struct {
 	done chan struct{}
 }
 
-func NewControllerLogic(cfg *config) *ControllerLogic {
+func NewControllerLogic(cfg *config.Config) *ControllerLogic {
 	w := utils.NewTimingWheel(500*time.Millisecond, 120)
+	d := detector.NewDetector(cfg)
 	cl := &ControllerLogic{
 		cfg:              cfg,
 		aliyunOss:        &cfg.AliyunOss,
 		w:                w,
+		detector:         d,
 		domainMap:        make(map[int64]*DomainMapInfo),
 		domainGroupList:  make([]int64, 0),
 		contentMap:       make(map[int64]*ContentMapInfo),
@@ -72,7 +77,7 @@ func NewControllerLogic(cfg *config) *ControllerLogic {
 	if err != nil {
 		plog.Panicf("aliyun oss new error: %v\n", err)
 	}
-	cl.aliyunOss.aliyunClient = aliyunClient
+	cl.aliyunOss.AliyunClient = aliyunClient
 	db, err := NewControllerDB(&cfg.MysqlInfo)
 	if err != nil {
 		plog.Panicf("db controller new error: %v\n", err)
@@ -288,7 +293,7 @@ func (cl *ControllerLogic) getDomainFromGroupID(groupID int64) (*DomainInfo, err
 	return nil, fmt.Errorf("no useful domain!")
 }
 
-func (cl *ControllerLogic) GetContent(id int64) (*RealContentInfo, error) {
+func (cl *ControllerLogic) GetContent(id int64, clientIP string) (*RealContentInfo, error) {
 	cl.Lock()
 	defer cl.Unlock()
 
@@ -318,6 +323,10 @@ func (cl *ControllerLogic) GetContent(id int64) (*RealContentInfo, error) {
 			rci.IfOffLine = true
 		}
 	}
+	if cl.detector.Check(&detector.DetectorInfo{GroupID: id, IP: clientIP}) {
+		rci.IfForceShare = false
+	}
+	
 	return rci, nil
 }
 
@@ -334,7 +343,7 @@ func touchCacheDir() {
 	}
 }
 
-func setupLogging(cfg *config) {
+func setupLogging(cfg *config.Config) {
 	capnslog.SetGlobalLogLevel(capnslog.INFO)
 	if cfg.Debug {
 		capnslog.SetGlobalLogLevel(capnslog.DEBUG)

@@ -1,4 +1,4 @@
-package controller
+package config
 
 import (
 	"flag"
@@ -8,7 +8,10 @@ import (
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
 	"github.com/go-ini/ini"
 	"github.com/reechou/x-real-control/utils"
+	"github.com/coreos/pkg/capnslog"
 )
+
+var plog = capnslog.NewPackageLogger("github.com/reezhou/x-real-control", "config")
 
 type AliyunOss struct {
 	Endpoint        string
@@ -16,10 +19,15 @@ type AliyunOss struct {
 	AccessKeySecret string
 	Bucket          string
 	Url             string
-	aliyunClient    *oss.Client
+	AliyunClient    *oss.Client
 }
 
-type config struct {
+type IPFilterConfig struct {
+	IPDB           string
+	FilterLocation []string
+}
+
+type Config struct {
 	ConfigPath string
 
 	Debug bool
@@ -31,10 +39,11 @@ type config struct {
 
 	utils.MysqlInfo
 	AliyunOss
+	IPFilterConfig
 }
 
-func NewConfig() *config {
-	c := new(config)
+func NewConfig() *Config {
+	c := new(Config)
 	initFlag(c)
 
 	if c.ConfigPath == "" {
@@ -58,7 +67,7 @@ func NewConfig() *config {
 	return c
 }
 
-func initFlag(c *config) {
+func initFlag(c *Config) {
 	fs := flag.NewFlagSet(os.Args[0], flag.ContinueOnError)
 	v := fs.Bool("v", false, "Print version and exit")
 	fs.StringVar(&c.ConfigPath, "c", "", "wx-controller config file.")
