@@ -279,8 +279,9 @@ func (cl *ControllerLogic) getDomainFromGroupID(groupID int64) (*DomainInfo, err
 				oldDomainIdx := v.idx
 				for {
 					if v.domainList.DomainList[v.idx].Status == DOMAIN_STATUS_OK {
+						resultIdx := v.idx
 						v.idx = (v.idx + 1) % int64(len(v.domainList.DomainList))
-						return v.domainList.DomainList[v.idx], nil
+						return v.domainList.DomainList[resultIdx], nil
 					}
 					v.idx = (v.idx + 1) % int64(len(v.domainList.DomainList))
 					if v.idx == oldDomainIdx {
