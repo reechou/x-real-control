@@ -115,6 +115,8 @@ const (
 )
 
 func (dch *DomainCheckHealth) checkHealth(info *DomainInfo) bool {
+	return true
+	
 	url := "http://app.nf6688.com/___check___/" + info.Domain
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
