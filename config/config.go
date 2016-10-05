@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"strconv"
 
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
 	"github.com/go-ini/ini"
@@ -35,7 +36,13 @@ type Config struct {
 	ListenAddr string
 	ListenPort int
 
-	IfStartTimer bool
+	IfStartTimer  bool
+	IfUrlEncoding bool
+	
+	BaiduGroups []int64
+	ZhihuGroups []int64
+	BaiduUrlGroup []string
+	ZhihuUrlGroup []string
 
 	utils.MysqlInfo
 	AliyunOss
@@ -62,6 +69,22 @@ func NewConfig() *Config {
 		plog.Errorf("config MapTo error: %v\n", err)
 		os.Exit(1)
 	}
+	
+	for _, v := range c.BaiduUrlGroup {
+		groupId, err := strconv.ParseInt(v, 10, 0)
+		if err != nil {
+			continue
+		}
+		c.BaiduGroups = append(c.BaiduGroups, groupId)
+	}
+	for _, v := range c.ZhihuUrlGroup {
+		groupId, err := strconv.ParseInt(v, 10, 0)
+		if err != nil {
+			continue
+		}
+		c.ZhihuGroups = append(c.ZhihuGroups, groupId)
+	}
+	
 	plog.Info(c)
 
 	return c

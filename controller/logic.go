@@ -281,7 +281,39 @@ func (cl *ControllerLogic) getDomainFromGroupID(groupID int64) (*DomainInfo, err
 					if v.domainList.DomainList[v.idx].Status == DOMAIN_STATUS_OK {
 						resultIdx := v.idx
 						v.idx = (v.idx + 1) % int64(len(v.domainList.DomainList))
-						return v.domainList.DomainList[resultIdx], nil
+						var domain string
+						if cl.cfg.IfUrlEncoding {
+							ok := false
+							for _, gv := range cl.cfg.BaiduGroups {
+								if gv == groupID {
+									domain = BaiduEncoding(v.domainList.DomainList[resultIdx].Domain)
+									ok = true
+									break
+								}
+							}
+							if !ok {
+								for _, gv := range cl.cfg.ZhihuGroups {
+									if gv == groupID {
+										domain = ZhihuEncoding(v.domainList.DomainList[resultIdx].Domain)
+										ok = true
+										break
+									}
+								}
+							}
+							if !ok {
+								domain = v.domainList.DomainList[resultIdx].Domain
+							}
+						} else {
+							domain = v.domainList.DomainList[resultIdx].Domain
+						}
+						result := &DomainInfo{
+							ID: v.domainList.DomainList[resultIdx].ID,
+							GroupID: v.domainList.DomainList[resultIdx].GroupID,
+							Domain: domain,
+							Status: v.domainList.DomainList[resultIdx].Status,
+							Time: v.domainList.DomainList[resultIdx].Time,
+						}
+						return result, nil
 					}
 					v.idx = (v.idx + 1) % int64(len(v.domainList.DomainList))
 					if v.idx == oldDomainIdx {
