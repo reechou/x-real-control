@@ -389,7 +389,7 @@ func (xhs *XHttpServer) getAllDomains(rsp http.ResponseWriter, req *http.Request
 		Title: "domains",
 		Domains: list,
 	}
-	tpl, err := template.New("domains.tpl").ParseFiles("/Users/reezhou/Desktop/xman/src/github.com/reechou/x-real-control/tpl/domains.tpl")
+	tpl, err := template.New("domains.tpl").ParseFiles(xhs.logic.cfg.DomainsTpl)
 	if err != nil {
 		fmt.Println(err)
 		rsp.WriteHeader(500)
