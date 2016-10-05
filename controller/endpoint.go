@@ -6,6 +6,8 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strings"
+	"strconv"
+	"html/template"
 )
 
 func (xhs *XHttpServer) addDomainGroup(rsp http.ResponseWriter, req *http.Request) (interface{}, error) {
@@ -317,4 +319,87 @@ func (xhs *XHttpServer) getData(rsp http.ResponseWriter, req *http.Request) (int
 	response.Data = data
 
 	return response, nil
+}
+
+func (xhs *XHttpServer) setDomainStatus(rsp http.ResponseWriter, req *http.Request) (interface{}, error) {
+	req.ParseForm()
+	var domain string
+	var status int64
+	domainV := req.Form["domain"]
+	if domainV == nil {
+		plog.Errorf("set domain status domain is nil\n")
+		return nil, nil
+	}
+	statusV := req.Form["status"]
+	if statusV == nil {
+		plog.Errorf("set domain status status is nil \n")
+		return nil, nil
+	}
+	domain = domainV[0]
+	status, _ = strconv.ParseInt(statusV[0], 10, 0)
+	
+	response := &Response{Code: RES_OK}
+	info := &DomainInfo{
+		Domain: domain,
+		Status: status,
+	}
+	
+	err := xhs.logic.cdb.UpdateDomainsStatus(info)
+	if err != nil {
+		response.Code = RES_ERR
+		response.Msg = fmt.Sprintf("set domain failed: %v", err)
+		return response, nil
+	}
+	
+	return response, nil
+}
+
+func (xhs *XHttpServer) getAllDomains(rsp http.ResponseWriter, req *http.Request) {
+	//req.ParseForm()
+	//var offset int64
+	//var num int64
+	//offsetV := req.Form["offset"]
+	//if offsetV == nil {
+	//	plog.Errorf("get all domains offset is nil\n")
+	//	rsp.WriteHeader(500)
+	//	rsp.Write([]byte("get all domains offset is nil."))
+	//	return
+	//}
+	//numV := req.Form["num"]
+	//if numV == nil {
+	//	plog.Errorf("get all domains num is nil \n")
+	//	rsp.WriteHeader(500)
+	//	rsp.Write([]byte("get all domains num is nil."))
+	//	return
+	//}
+	//offset, _ = strconv.ParseInt(offsetV[0], 10, 0)
+	//num, _ = strconv.ParseInt(numV[0], 10, 0)
+	
+	list, err := xhs.logic.cdb.GetAllDomain()
+	if err != nil {
+		rsp.WriteHeader(500)
+		rsp.Write([]byte("get all domain error."))
+		return
+	}
+	type HtmlDomains struct {
+		Title string
+		Domains []string
+	}
+	htmlDomains := &HtmlDomains{
+		Title: "domains",
+		Domains: list,
+	}
+	tpl, err := template.New("domains.tpl").ParseFiles("/Users/reezhou/Desktop/xman/src/github.com/reechou/x-real-control/tpl/domains.tpl")
+	if err != nil {
+		fmt.Println(err)
+		rsp.WriteHeader(500)
+		rsp.Write([]byte("tpl parse error."))
+		return
+	}
+	err = tpl.Execute(rsp, htmlDomains)
+	if err != nil {
+		rsp.WriteHeader(500)
+		rsp.Write([]byte("tpl parse error."))
+		return
+	}
 }

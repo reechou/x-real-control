@@ -44,6 +44,7 @@ func (xhs *XHttpServer) registerHandlers() {
 	xhs.hs.Route("/domain/get_domain_list", xhs.httpWrap(xhs.getDomainList))
 	xhs.hs.Route("/domain/setting_domain_group", xhs.httpWrap(xhs.settingDomainGroup))
 	xhs.hs.Route("/domain/off_domain", xhs.httpWrap(xhs.offDomain))
+	xhs.hs.Route("/domain/set_domain_status", xhs.httpWrap(xhs.setDomainStatus))
 	xhs.hs.Route("/domain/get_url", xhs.httpWrap(xhs.getURL))
 	xhs.hs.Route("/domain/add_content_group", xhs.httpWrap(xhs.addContentGroup))
 	xhs.hs.Route("/domain/get_content_group_detail", xhs.httpWrap(xhs.getContentGroupDetail))
@@ -51,6 +52,8 @@ func (xhs *XHttpServer) registerHandlers() {
 	xhs.hs.Route("/domain/get_content_group", xhs.httpWrap(xhs.getContentGroup))
 	xhs.hs.Route("/domain/get_content_list", xhs.httpWrap(xhs.getContentList))
 	xhs.hs.Route("/domain/get_data", xhs.httpWrap(xhs.getData))
+	
+	xhs.hs.Route("/domain/get_all_domains", xhs.getAllDomains)
 }
 
 func (xhs *XHttpServer) httpWrap(handler HttpHandler) func(rsp http.ResponseWriter, req *http.Request) {

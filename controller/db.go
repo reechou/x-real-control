@@ -59,6 +59,18 @@ func (cdb *ControllerDB) InsertContent(info *ContentInfo) error {
 	return nil
 }
 
+func (cdb *ControllerDB) GetAllDomain() ([]string, error) {
+	rows, err := cdb.db.FetchRows("select domain from domain where status=0")
+	if err != nil {
+		return nil, err
+	}
+	var list []string
+	for _, v := range *rows {
+		list = append(list, v["domain"])
+	}
+	return list, nil
+}
+
 func (cdb *ControllerDB) GetDomainGroupFromID(info *DomainGroupInfo) error {
 	row, err := cdb.db.FetchRow("select name,status,share_status,ads_status,time from domain_group where id=?", info.ID)
 	if err != nil {
@@ -234,6 +246,14 @@ func (cdb *ControllerDB) GetContentList(list *ContentList) error {
 
 func (cdb *ControllerDB) UpdateDomainStatus(info *DomainInfo) error {
 	_, err := cdb.db.Exec("update domain set status=? where id=?", info.Status, info.ID)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (cdb *ControllerDB) UpdateDomainsStatus(info *DomainInfo) error {
+	_, err := cdb.db.Exec("update domain set status=? where domain=?", info.Status, info.Domain)
 	if err != nil {
 		return err
 	}
