@@ -2,6 +2,7 @@ package controller
 
 import (
 	"strconv"
+	"strings"
 
 	"github.com/reechou/x-real-control/utils"
 )
@@ -170,7 +171,7 @@ func (cdb *ControllerDB) GetDomainList(list *DomainList) error {
 }
 
 func (cdb *ControllerDB) GetContentGroupFromID(info *ContentGroupInfo) error {
-	row, err := cdb.db.FetchRow("select name,json_url,type,time from content_group where id=?", info.ID)
+	row, err := cdb.db.FetchRow("select name,json_url,type,main_content,time,UNIX_TIMESTAMP(time) as utime from content_group where id=?", info.ID)
 	if err != nil {
 		return err
 	}
@@ -178,10 +179,29 @@ func (cdb *ControllerDB) GetContentGroupFromID(info *ContentGroupInfo) error {
 	if err != nil {
 		return err
 	}
+	utime, err := strconv.ParseInt((*row)["utime"], 10, 0)
+	if err != nil {
+		return err
+	}
 	info.Name = (*row)["name"]
 	info.JsonUrl = (*row)["json_url"]
 	info.Type = t
 	info.Time = (*row)["time"]
+	info.UpdateTime = utime
+	if (*row)["main_content"] != "" {
+		mainList := strings.Split((*row)["main_content"], ",")
+		info.MainContent = nil
+		for _, v := range mainList {
+			cId, err := strconv.ParseInt(v, 10, 0)
+			if err != nil {
+				plog.Errorf("main content[%s] strconv error: %v", v, err)
+				continue
+			}
+			info.MainContent = append(info.MainContent, cId)
+		}
+		plog.Debugf("content_group_id[%d] main_content: %v\n", info.ID, info.MainContent)
+	}
+	
 	return nil
 }
 

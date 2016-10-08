@@ -15,8 +15,9 @@ type ContentGenerate struct {
 	logic     *ControllerLogic
 	cdb       *ControllerDB
 
-	updateTime int64
-	aliyunInfo *config.AliyunOss
+	groupUpdateTime int64
+	updateTime      int64
+	aliyunInfo      *config.AliyunOss
 
 	stop chan struct{}
 	done chan struct{}
@@ -78,23 +79,29 @@ func (cg *ContentGenerate) onCheck() {
 	list := &ContentList{
 		GroupID: cg.groupInfo.ID,
 	}
-	err := cg.cdb.GetContentList(list)
+	err := cg.cdb.GetContentGroupFromID(cg.groupInfo)
+	if err != nil {
+		plog.Errorf("get content group error: %v\n", err)
+	}
+	err = cg.cdb.GetContentList(list)
 	if err != nil {
 		plog.Errorf("get content list error: %v\n", err)
 		return
 	}
-	if list.UpdateTime > cg.updateTime {
+	if list.UpdateTime > cg.updateTime || cg.groupInfo.UpdateTime > cg.groupUpdateTime {
 		err = cg.saveAndPublish(list)
 		if err != nil {
 			plog.Errorf("save and publish error: %v\n", err)
 			return
 		}
 		cg.updateTime = list.UpdateTime
+		cg.groupUpdateTime = cg.groupInfo.UpdateTime
 	}
 }
 
 func (cg *ContentGenerate) saveAndPublish(list *ContentList) error {
 	var dataList []interface{}
+	var dataListMain []interface{}
 	for _, v := range list.ContentList {
 		switch cg.groupInfo.Type {
 		case CONTENT_TYPE_VIDEO:
@@ -104,10 +111,21 @@ func (cg *ContentGenerate) saveAndPublish(list *ContentList) error {
 				continue
 			}
 			info.ID = v.ID
-			dataList = append(dataList, info)
+			var ifMain bool
+			for _, mv := range cg.groupInfo.MainContent {
+				if v.ID == mv {
+					ifMain = true
+					dataListMain = append(dataListMain, info)
+					break
+				}
+			}
+			if !ifMain {
+				dataList = append(dataList, info)
+			}
 		}
 	}
-	dataListBytes, err := json.Marshal(dataList)
+	data := append(dataListMain, dataList...)
+	dataListBytes, err := json.Marshal(data)
 	if err != nil {
 		return err
 	}

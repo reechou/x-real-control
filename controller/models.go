@@ -33,11 +33,13 @@ type DomainList struct {
 }
 
 type ContentGroupInfo struct {
-	ID      int64  `json:"id"`
-	Name    string `json:"name"`
-	JsonUrl string `json:"jsonUrl"`
-	Type    int64  `json:"type"`
-	Time    string `json:"time"`
+	ID          int64   `json:"id"`
+	Name        string  `json:"name"`
+	JsonUrl     string  `json:"jsonUrl"`
+	Type        int64   `json:"type"`
+	MainContent []int64 `json:"mainContent"`
+	Time        string  `json:"time"`
+	UpdateTime  int64
 }
 
 type Video struct {

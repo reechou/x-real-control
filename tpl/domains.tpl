@@ -1,5 +1,4 @@
 <html>
-{{range .Domains}}
-{{.}}<br/>{{end}}
-<font>over<font><br/>
+{{range .Domains}}{{.}}<br/>{{end}}
+over
 </html>
