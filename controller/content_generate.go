@@ -102,6 +102,20 @@ func (cg *ContentGenerate) onCheck() {
 func (cg *ContentGenerate) saveAndPublish(list *ContentList) error {
 	var dataList []interface{}
 	var dataListMain []interface{}
+	for _, v := range cg.groupInfo.MainContent {
+		for _, cv := range list.ContentList {
+			if cv.ID == v {
+				var info Video
+				err := json.Unmarshal([]byte(cv.Value), &info)
+				if err != nil {
+					continue
+				}
+				info.ID = cv.ID
+				dataListMain = append(dataListMain, info)
+				break
+			}
+		}
+	}
 	for _, v := range list.ContentList {
 		switch cg.groupInfo.Type {
 		case CONTENT_TYPE_VIDEO:
@@ -115,7 +129,6 @@ func (cg *ContentGenerate) saveAndPublish(list *ContentList) error {
 			for _, mv := range cg.groupInfo.MainContent {
 				if v.ID == mv {
 					ifMain = true
-					dataListMain = append(dataListMain, info)
 					break
 				}
 			}
