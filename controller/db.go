@@ -61,7 +61,7 @@ func (cdb *ControllerDB) InsertContent(info *ContentInfo) error {
 }
 
 func (cdb *ControllerDB) GetAllDomain() ([]string, error) {
-	rows, err := cdb.db.FetchRows("select domain from domain where status=0")
+	rows, err := cdb.db.FetchRows("select domain from domain where status=0 group by domain")
 	if err != nil {
 		return nil, err
 	}
