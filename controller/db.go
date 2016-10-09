@@ -77,6 +77,7 @@ func (cdb *ControllerDB) GetDomainGroupFromID(info *DomainGroupInfo) error {
 	if err != nil {
 		return err
 	}
+	plog.Debugf("GetDomainGroupFromID debug: %v\n", *row)
 	status, err := strconv.ParseInt((*row)["status"], 10, 0)
 	if err != nil {
 		plog.Errorf("GetDomainGroupFromID parse status[%s] error: %v\n", (*row)["status"], err)
