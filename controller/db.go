@@ -79,14 +79,17 @@ func (cdb *ControllerDB) GetDomainGroupFromID(info *DomainGroupInfo) error {
 	}
 	status, err := strconv.ParseInt((*row)["status"], 10, 0)
 	if err != nil {
+		plog.Errorf("GetDomainGroupFromID parse status[%s] error: %v\n", (*row)["status"], err)
 		return err
 	}
 	shareStatus, err := strconv.ParseInt((*row)["share_status"], 10, 0)
 	if err != nil {
+		plog.Errorf("GetDomainGroupFromID parse share_status[%s] error: %v\n", (*row)["share_status"], err)
 		return err
 	}
 	adsStatus, err := strconv.ParseInt((*row)["ads_status"], 10, 0)
 	if err != nil {
+		plog.Errorf("GetDomainGroupFromID parse ads_status[%s] error: %v\n", (*row)["ads_status"], err)
 		return err
 	}
 	info.Name = (*row)["name"]
