@@ -124,7 +124,7 @@ func (cl *ControllerLogic) Init() error {
 			plog.Error("[logic] init get domain list error: %v\n", err)
 			return err
 		}
-		dhc := NewDomainCheckHealth(v, cl.cdb, cl.w, cl)
+		dhc := NewDomainCheckHealth(v, cl.cdb, cl.w, cl, cl.cfg)
 		cl.domainMap[v.ID] = &DomainMapInfo{
 			groupInfo:  v,
 			domainList: domainList,
@@ -191,7 +191,7 @@ func (cl *ControllerLogic) onRefresh() {
 			if err != nil {
 				plog.Error("[onRefresh] get domain list error: %v\n", err)
 			} else {
-				dhc := NewDomainCheckHealth(v, cl.cdb, cl.w, cl)
+				dhc := NewDomainCheckHealth(v, cl.cdb, cl.w, cl, cl.cfg)
 				cl.Lock()
 				cl.domainMap[v.ID] = &DomainMapInfo{
 					groupInfo:  v,

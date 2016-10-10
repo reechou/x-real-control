@@ -4,8 +4,10 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
+	"bytes"
 
 	"github.com/reechou/x-real-control/utils"
+	"github.com/reechou/x-real-control/config"
 )
 
 const (
@@ -17,6 +19,9 @@ const (
 type DomainCheckHealth struct {
 	groupInfo  *DomainGroupInfo
 	updateTime int64
+	
+	cfg *config.Config
+	checkUrlIdx int
 
 	cdb   *ControllerDB
 	w     *utils.TimingWheel
@@ -28,9 +33,10 @@ type DomainCheckHealth struct {
 	done chan struct{}
 }
 
-func NewDomainCheckHealth(groupInfo *DomainGroupInfo, cdb *ControllerDB, w *utils.TimingWheel, logic *ControllerLogic) *DomainCheckHealth {
+func NewDomainCheckHealth(groupInfo *DomainGroupInfo, cdb *ControllerDB, w *utils.TimingWheel, logic *ControllerLogic, cfg *config.Config) *DomainCheckHealth {
 	dch := &DomainCheckHealth{
 		groupInfo: groupInfo,
+		cfg:       cfg,
 		cdb:       cdb,
 		w:         w,
 		logic:     logic,
@@ -87,7 +93,10 @@ func (dch *DomainCheckHealth) onCheck() {
 	// check
 	checkUpdate := false
 	for _, v := range list.DomainList {
-		ok := dch.checkHealth(v)
+		if v.Status == DOMAIN_STATUS_DOWN {
+			continue
+		}
+		ok := dch.checkHealthV2(v)
 		if !ok {
 			if v.Status != DOMAIN_STATUS_DOWN {
 				v.Status = DOMAIN_STATUS_DOWN
@@ -101,6 +110,54 @@ func (dch *DomainCheckHealth) onCheck() {
 	if checkUpdate || (list.UpdateTime > dch.updateTime) {
 		dch.logic.UpdateDomainGroup(dch.groupInfo, list)
 	}
+}
+
+const (
+	DOMAIN_CHECK_OK = "[0]"
+	DOMAIN_CHECK_GRAY = "[1]"
+	DOMAIN_CHECK_BLACK = "[2]"
+	DOMAIN_CHECK_QUERY_ERROR = "[3]"
+)
+
+func (dch *DomainCheckHealth) checkHealthV2(info *DomainInfo) bool {
+	if len(dch.cfg.CheckDomainUrls) == 0 {
+		return true
+	}
+	url := "http://" + dch.cfg.CheckDomainUrls[dch.checkUrlIdx] + "/mt.do?url=" + info.Domain
+	dch.checkUrlIdx = (dch.checkUrlIdx + 1) % len(dch.cfg.CheckDomainUrls)
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		plog.Errorf("check health[%s] error: %v\n", info.Domain, err)
+		return false
+	}
+	
+	rsp, err := dch.client.Do(req)
+	defer func() {
+		if rsp != nil {
+			rsp.Body.Close()
+		}
+	}()
+	if err != nil {
+		plog.Errorf("check health[%s] error: %v\n", info.Domain, err)
+		return false
+	}
+	rspBody, err := ioutil.ReadAll(rsp.Body)
+	if err != nil {
+		plog.Errorf("check health[%s] error: %v\n", info.Domain, err)
+		return false
+	}
+	rspBody = bytes.Replace(rspBody, []byte(" "), []byte(""), -1)
+	rspBody = bytes.Replace(rspBody, []byte("\n"), []byte(""), -1)
+	result := string(rspBody)
+	switch result {
+	case DOMAIN_CHECK_OK:
+		return true
+	}
+	plog.Errorf("domain[%s] check health error, check result: %s\n", url, result)
+	if result == DOMAIN_CHECK_QUERY_ERROR {
+		return true
+	}
+	return false
 }
 
 type DomainHealthResponse struct {

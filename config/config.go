@@ -44,6 +44,8 @@ type Config struct {
 	BaiduUrlGroup []string
 	ZhihuUrlGroup []string
 	DomainsTpl    string
+	
+	CheckDomainUrls []string
 
 	utils.MysqlInfo
 	AliyunOss
