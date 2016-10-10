@@ -154,7 +154,7 @@ func (dch *DomainCheckHealth) checkHealthV2(info *DomainInfo) bool {
 		return true
 	}
 	plog.Errorf("domain[%s] check health error, check result: %s\n", url, result)
-	if result == DOMAIN_CHECK_QUERY_ERROR {
+	if result != DOMAIN_CHECK_GRAY || result != DOMAIN_CHECK_BLACK {
 		return true
 	}
 	return false
