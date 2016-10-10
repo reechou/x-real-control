@@ -73,11 +73,10 @@ func (cdb *ControllerDB) GetAllDomain() ([]string, error) {
 }
 
 func (cdb *ControllerDB) GetDomainGroupFromID(info *DomainGroupInfo) error {
-	row, err := cdb.db.FetchRow("select name,status,share_status,ads_status,time from domain_group where id=?", info.ID)
+	row, err := cdb.db.FetchRow("select name,status,share_status,ads_status,type,show_group_list,time from domain_group where id=?", info.ID)
 	if err != nil {
 		return err
 	}
-	plog.Debugf("GetDomainGroupFromID debug: %v\n", *row)
 	status, err := strconv.ParseInt((*row)["status"], 10, 0)
 	if err != nil {
 		plog.Errorf("GetDomainGroupFromID parse status[%s] error: %v\n", (*row)["status"], err)
@@ -93,16 +92,36 @@ func (cdb *ControllerDB) GetDomainGroupFromID(info *DomainGroupInfo) error {
 		plog.Errorf("GetDomainGroupFromID parse ads_status[%s] error: %v\n", (*row)["ads_status"], err)
 		return err
 	}
+	t, err := strconv.ParseInt((*row)["type"], 10, 0)
+	if err != nil {
+		plog.Errorf("GetDomainGroupFromID parse type[%s] error: %v\n", (*row)["type"], err)
+		return err
+	}
 	info.Name = (*row)["name"]
 	info.Status = status
 	info.ShareStatus = shareStatus
 	info.AdsStatus = adsStatus
+	info.Type = t
 	info.Time = (*row)["time"]
+	if (*row)["show_group_list"] != "" && (*row)["show_group_list"] != info.ShowListStr {
+		info.ShowListStr = (*row)["show_group_list"]
+		showList := strings.Split((*row)["show_group_list"], ",")
+		info.ShowGroupList = nil
+		for _, v := range showList {
+			sId, err := strconv.ParseInt(v, 10, 0)
+			if err != nil {
+				plog.Errorf("GetDomainGroupFromID show_group_list[%s] strconv error: %v", v, err)
+				continue
+			}
+			info.ShowGroupList = append(info.ShowGroupList, sId)
+		}
+	}
+	
 	return nil
 }
 
 func (cdb *ControllerDB) GetDomainGroupList(maxID int64) ([]*DomainGroupInfo, int64, error) {
-	rows, err := cdb.db.FetchRows("select id,name,status,share_status,ads_status,time from domain_group where id>?", maxID)
+	rows, err := cdb.db.FetchRows("select id,name,status,share_status,ads_status,type,show_group_list,time from domain_group where id>?", maxID)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -125,6 +144,11 @@ func (cdb *ControllerDB) GetDomainGroupList(maxID int64) ([]*DomainGroupInfo, in
 		if err != nil {
 			continue
 		}
+		t, err := strconv.ParseInt(v["type"], 10, 0)
+		if err != nil {
+			continue
+		}
+		
 		if id > newMaxID {
 			newMaxID = id
 		}
@@ -134,7 +158,20 @@ func (cdb *ControllerDB) GetDomainGroupList(maxID int64) ([]*DomainGroupInfo, in
 			Status:      status,
 			ShareStatus: shareStatus,
 			AdsStatus:   adsStatus,
+			Type:        t,
 			Time:        v["time"],
+		}
+		if v["show_group_list"] != "" {
+			info.ShowListStr = v["show_group_list"]
+			showList := strings.Split(v["show_group_list"], ",")
+			for _, v := range showList {
+				sId, err := strconv.ParseInt(v, 10, 0)
+				if err != nil {
+					plog.Errorf("GetDomainGroupFromID show_group_list[%s] strconv error: %v", v, err)
+					continue
+				}
+				info.ShowGroupList = append(info.ShowGroupList, sId)
+			}
 		}
 		list = append(list, info)
 	}

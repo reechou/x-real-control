@@ -9,21 +9,30 @@ const (
 	CONTENT_T_ADS
 )
 
+const (
+	DOMAIN_GROUP_TYPE_SHOW = iota
+	DOMAIN_GROUP_TYPE_JUMP
+)
+
 type DomainGroupInfo struct {
-	ID          int64  `json:"id"`
-	Name        string `json:"name"`
-	Status      int64  `json:"status"`
-	ShareStatus int64  `json:"shareStatus"`
-	AdsStatus   int64  `json:"adsStatus"`
-	Time        string `json:"time"`
+	ID            int64   `json:"id"`
+	Name          string  `json:"name"`
+	Status        int64   `json:"status"`
+	ShareStatus   int64   `json:"shareStatus"`
+	AdsStatus     int64   `json:"adsStatus"`
+	Type          int64   `json:"type"`
+	ShowGroupList []int64 `json:"showGroupList"`
+	ShowListStr   string  `json:"showGroupListStr"`
+	Time          string  `json:"time"`
 }
 
 type DomainInfo struct {
-	ID      int64  `json:"id"`
-	GroupID int64  `json:"groupID"`
-	Domain  string `json:"domain"`
-	Status  int64  `json:"status"`
-	Time    string `json:"time"`
+	ID          int64  `json:"id"`
+	GroupID     int64  `json:"groupID"`
+	Domain      string `json:"domain"`
+	Status      int64  `json:"status"`
+	ShowGroupID int64  `json:"showGroupID"`
+	Time        string `json:"time"`
 }
 
 type DomainList struct {

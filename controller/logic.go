@@ -47,6 +47,8 @@ type ControllerLogic struct {
 	domainMap       map[int64]*DomainMapInfo
 	domainGroupList []int64
 	domainGroupIdx  int64
+	jumpDomainGroup []int64
+	jumpDomainIdx   int64
 	groupMaxID      int64
 
 	contentMap        map[int64]*ContentMapInfo
@@ -68,6 +70,7 @@ func NewControllerLogic(cfg *config.Config) *ControllerLogic {
 		detector:         d,
 		domainMap:        make(map[int64]*DomainMapInfo),
 		domainGroupList:  make([]int64, 0),
+		jumpDomainGroup:  make([]int64, 0),
 		contentMap:       make(map[int64]*ContentMapInfo),
 		contentGroupList: make([]int64, 0),
 		stop:             make(chan struct{}),
@@ -127,7 +130,12 @@ func (cl *ControllerLogic) Init() error {
 			domainList: domainList,
 			dhc:        dhc,
 		}
-		cl.domainGroupList = append(cl.domainGroupList, v.ID)
+		switch v.Type {
+		case DOMAIN_GROUP_TYPE_JUMP:
+			cl.jumpDomainGroup = append(cl.jumpDomainGroup, v.ID)
+		case DOMAIN_GROUP_TYPE_SHOW:
+			cl.domainGroupList = append(cl.domainGroupList, v.ID)
+		}
 	}
 
 	// get content list
@@ -190,7 +198,12 @@ func (cl *ControllerLogic) onRefresh() {
 					domainList: domainList,
 					dhc:        dhc,
 				}
-				cl.domainGroupList = append(cl.domainGroupList, v.ID)
+				switch v.Type {
+				case DOMAIN_GROUP_TYPE_JUMP:
+					cl.jumpDomainGroup = append(cl.jumpDomainGroup, v.ID)
+				case DOMAIN_GROUP_TYPE_SHOW:
+					cl.domainGroupList = append(cl.domainGroupList, v.ID)
+				}
 				cl.Unlock()
 			}
 		}
@@ -248,19 +261,35 @@ func (cl *ControllerLogic) UpdateContentGroup(groupInfo *ContentGroupInfo) {
 	}
 }
 
-func (cl *ControllerLogic) GetDomainInfo(id int64) (*DomainInfo, error) {
+func (cl *ControllerLogic) GetDomainInfo(id, t int64) (*DomainInfo, error) {
 	cl.Lock()
 	defer cl.Unlock()
-
+	
+	if t == DOMAIN_GROUP_TYPE_JUMP {
+		oldJumpGroupIdx := cl.jumpDomainIdx
+		for {
+			groupID := cl.jumpDomainGroup[cl.jumpDomainIdx]
+			cl.jumpDomainIdx = (cl.jumpDomainIdx + 1) % int64(len(cl.jumpDomainGroup))
+			domain, err := cl.getDomainFromGroupID(groupID, t)
+			if err == nil {
+				return domain, nil
+			}
+			if cl.jumpDomainIdx == oldJumpGroupIdx {
+				plog.Errorf("no useful jump domain!")
+				return nil, fmt.Errorf("no useful jump domain!")
+			}
+		}
+	}
+	
 	if id != 0 {
-		return cl.getDomainFromGroupID(id)
+		return cl.getDomainFromGroupID(id, t)
 	}
 
 	oldGroupIdx := cl.domainGroupIdx
 	for {
 		groupID := cl.domainGroupList[cl.domainGroupIdx]
 		cl.domainGroupIdx = (cl.domainGroupIdx + 1) % int64(len(cl.domainGroupList))
-		domain, err := cl.getDomainFromGroupID(groupID)
+		domain, err := cl.getDomainFromGroupID(groupID, t)
 		if err == nil {
 			return domain, nil
 		}
@@ -271,7 +300,7 @@ func (cl *ControllerLogic) GetDomainInfo(id int64) (*DomainInfo, error) {
 	}
 }
 
-func (cl *ControllerLogic) getDomainFromGroupID(groupID int64) (*DomainInfo, error) {
+func (cl *ControllerLogic) getDomainFromGroupID(groupID, t int64) (*DomainInfo, error) {
 	v := cl.domainMap[groupID]
 	if v != nil {
 		if v.groupInfo.Status == DOMAIN_STATUS_OK {
@@ -312,6 +341,23 @@ func (cl *ControllerLogic) getDomainFromGroupID(groupID int64) (*DomainInfo, err
 							Domain: domain,
 							Status: v.domainList.DomainList[resultIdx].Status,
 							Time: v.domainList.DomainList[resultIdx].Time,
+						}
+						if t == DOMAIN_GROUP_TYPE_JUMP {
+							ifHasShowGroup := false
+							for _, jv := range v.groupInfo.ShowGroupList {
+								jvg := cl.domainMap[jv]
+								if jvg != nil {
+									if jvg.groupInfo.Status == DOMAIN_STATUS_OK {
+										ifHasShowGroup = true
+										result.ShowGroupID = jvg.groupInfo.ID
+										break
+									}
+								}
+							}
+							if ifHasShowGroup {
+								return result, nil
+							}
+							return nil, fmt.Errorf("no useful jump domain!")
 						}
 						return result, nil
 					}

@@ -279,6 +279,7 @@ func (xhs *XHttpServer) getURL(rsp http.ResponseWriter, req *http.Request) (inte
 	response := &Response{Code: RES_OK}
 	type GetURLReq struct {
 		GroupID int64 `json:"groupID"`
+		Type    int64 `json:"type"`
 	}
 	var info GetURLReq
 	if err := xhs.decodeBody(req, &info, nil); err != nil {
@@ -287,7 +288,7 @@ func (xhs *XHttpServer) getURL(rsp http.ResponseWriter, req *http.Request) (inte
 		return response, nil
 	}
 
-	data, err := xhs.logic.GetDomainInfo(info.GroupID)
+	data, err := xhs.logic.GetDomainInfo(info.GroupID, info.Type)
 	if err != nil {
 		response.Code = RES_ERR
 		response.Msg = fmt.Sprintf("get url failed: %v", err)
