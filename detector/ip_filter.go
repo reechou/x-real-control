@@ -1,8 +1,8 @@
 package detector
 
 import (
-	"github.com/wangtuanjie/ip17mon"
 	"github.com/reechou/x-real-control/config"
+	"github.com/wangtuanjie/ip17mon"
 )
 
 type IPFilter struct {

@@ -52,7 +52,7 @@ func (xhs *XHttpServer) registerHandlers() {
 	xhs.hs.Route("/domain/get_content_group", xhs.httpWrap(xhs.getContentGroup))
 	xhs.hs.Route("/domain/get_content_list", xhs.httpWrap(xhs.getContentList))
 	xhs.hs.Route("/domain/get_data", xhs.httpWrap(xhs.getData))
-	
+
 	xhs.hs.Route("/domain/get_all_domains", xhs.getAllDomains)
 }
 

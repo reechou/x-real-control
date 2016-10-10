@@ -116,7 +116,7 @@ func (cdb *ControllerDB) GetDomainGroupFromID(info *DomainGroupInfo) error {
 			info.ShowGroupList = append(info.ShowGroupList, sId)
 		}
 	}
-	
+
 	return nil
 }
 
@@ -148,7 +148,7 @@ func (cdb *ControllerDB) GetDomainGroupList(maxID int64) ([]*DomainGroupInfo, in
 		if err != nil {
 			continue
 		}
-		
+
 		if id > newMaxID {
 			newMaxID = id
 		}
@@ -242,7 +242,7 @@ func (cdb *ControllerDB) GetContentGroupFromID(info *ContentGroupInfo) error {
 		}
 		plog.Debugf("content_group_id[%d] main_content: %v\n", info.ID, info.MainContent)
 	}
-	
+
 	return nil
 }
 

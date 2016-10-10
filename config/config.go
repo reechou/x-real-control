@@ -7,9 +7,9 @@ import (
 	"strconv"
 
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
+	"github.com/coreos/pkg/capnslog"
 	"github.com/go-ini/ini"
 	"github.com/reechou/x-real-control/utils"
-	"github.com/coreos/pkg/capnslog"
 )
 
 var plog = capnslog.NewPackageLogger("github.com/reezhou/x-real-control", "config")
@@ -38,12 +38,12 @@ type Config struct {
 
 	IfStartTimer  bool
 	IfUrlEncoding bool
-	
-	BaiduGroups []int64
-	ZhihuGroups []int64
+
+	BaiduGroups   []int64
+	ZhihuGroups   []int64
 	BaiduUrlGroup []string
 	ZhihuUrlGroup []string
-	DomainsTpl string
+	DomainsTpl    string
 
 	utils.MysqlInfo
 	AliyunOss
@@ -70,7 +70,7 @@ func NewConfig() *Config {
 		plog.Errorf("config MapTo error: %v\n", err)
 		os.Exit(1)
 	}
-	
+
 	for _, v := range c.BaiduUrlGroup {
 		groupId, err := strconv.ParseInt(v, 10, 0)
 		if err != nil {
@@ -85,7 +85,7 @@ func NewConfig() *Config {
 		}
 		c.ZhihuGroups = append(c.ZhihuGroups, groupId)
 	}
-	
+
 	plog.Info(c)
 
 	return c

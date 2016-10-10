@@ -8,9 +8,9 @@ import (
 
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
 	"github.com/coreos/pkg/capnslog"
-	"github.com/reechou/x-real-control/utils"
-	"github.com/reechou/x-real-control/detector"
 	"github.com/reechou/x-real-control/config"
+	"github.com/reechou/x-real-control/detector"
+	"github.com/reechou/x-real-control/utils"
 )
 
 const (
@@ -264,7 +264,7 @@ func (cl *ControllerLogic) UpdateContentGroup(groupInfo *ContentGroupInfo) {
 func (cl *ControllerLogic) GetDomainInfo(id, t int64) (*DomainInfo, error) {
 	cl.Lock()
 	defer cl.Unlock()
-	
+
 	if t == DOMAIN_GROUP_TYPE_JUMP {
 		oldJumpGroupIdx := cl.jumpDomainIdx
 		for {
@@ -280,7 +280,7 @@ func (cl *ControllerLogic) GetDomainInfo(id, t int64) (*DomainInfo, error) {
 			}
 		}
 	}
-	
+
 	if id != 0 {
 		return cl.getDomainFromGroupID(id, t)
 	}
@@ -336,11 +336,11 @@ func (cl *ControllerLogic) getDomainFromGroupID(groupID, t int64) (*DomainInfo, 
 							domain = v.domainList.DomainList[resultIdx].Domain
 						}
 						result := &DomainInfo{
-							ID: v.domainList.DomainList[resultIdx].ID,
+							ID:      v.domainList.DomainList[resultIdx].ID,
 							GroupID: v.domainList.DomainList[resultIdx].GroupID,
-							Domain: domain,
-							Status: v.domainList.DomainList[resultIdx].Status,
-							Time: v.domainList.DomainList[resultIdx].Time,
+							Domain:  domain,
+							Status:  v.domainList.DomainList[resultIdx].Status,
+							Time:    v.domainList.DomainList[resultIdx].Time,
 						}
 						if t == DOMAIN_GROUP_TYPE_JUMP {
 							ifHasShowGroup := false
@@ -373,9 +373,35 @@ func (cl *ControllerLogic) getDomainFromGroupID(groupID, t int64) (*DomainInfo, 
 	return nil, fmt.Errorf("no useful domain!")
 }
 
-func (cl *ControllerLogic) GetContent(id int64, clientIP string) (*RealContentInfo, error) {
+func (cl *ControllerLogic) GetContent(id, contentGroupID int64, clientIP string) (*RealContentInfo, error) {
 	cl.Lock()
 	defer cl.Unlock()
+
+	if contentGroupID != 0 {
+		list := cl.contentMap[contentGroupID]
+		if list == nil {
+			return nil, fmt.Errorf("no this[%d] content group!", contentGroupID)
+		}
+		rci := &RealContentInfo{
+			ContentGroupID: contentGroupID,
+			ContentUrl:     list.groupInfo.JsonUrl,
+			IfForceShare:   true,
+			IfShowAds:      true,
+		}
+		v := cl.domainMap[id]
+		if v != nil {
+			rci.IfForceShare = (v.groupInfo.ShareStatus == 0)
+			rci.IfShowAds = (v.groupInfo.AdsStatus == 0)
+			if v.groupInfo.Status != DOMAIN_STATUS_OK {
+				rci.IfOffLine = true
+			}
+		}
+		if cl.detector.Check(&detector.DetectorInfo{GroupID: id, IP: clientIP}) {
+			rci.IfForceShare = false
+		}
+
+		return rci, nil
+	}
 
 	var idx int64
 	idx = -1
@@ -391,9 +417,10 @@ func (cl *ControllerLogic) GetContent(id int64, clientIP string) (*RealContentIn
 		return nil, fmt.Errorf("content map error!")
 	}
 	rci := &RealContentInfo{
-		ContentUrl:   list.groupInfo.JsonUrl,
-		IfForceShare: true,
-		IfShowAds:    true,
+		ContentGroupID: list.groupInfo.ID,
+		ContentUrl:     list.groupInfo.JsonUrl,
+		IfForceShare:   true,
+		IfShowAds:      true,
 	}
 	v := cl.domainMap[id]
 	if v != nil {
@@ -406,7 +433,7 @@ func (cl *ControllerLogic) GetContent(id int64, clientIP string) (*RealContentIn
 	if cl.detector.Check(&detector.DetectorInfo{GroupID: id, IP: clientIP}) {
 		rci.IfForceShare = false
 	}
-	
+
 	return rci, nil
 }
 

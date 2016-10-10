@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
-	"github.com/reechou/x-real-control/utils"
 	"github.com/reechou/x-real-control/config"
+	"github.com/reechou/x-real-control/utils"
 )
 
 type ContentGenerate struct {

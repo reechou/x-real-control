@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/reechou/x-real-control/controller"
 	"github.com/reechou/x-real-control/config"
+	"github.com/reechou/x-real-control/controller"
 )
 
 func main() {

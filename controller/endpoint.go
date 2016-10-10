@@ -3,11 +3,11 @@ package controller
 import (
 	"encoding/json"
 	"fmt"
+	"html/template"
 	"io/ioutil"
 	"net/http"
-	"strings"
 	"strconv"
-	"html/template"
+	"strings"
 )
 
 func (xhs *XHttpServer) addDomainGroup(rsp http.ResponseWriter, req *http.Request) (interface{}, error) {
@@ -302,7 +302,8 @@ func (xhs *XHttpServer) getURL(rsp http.ResponseWriter, req *http.Request) (inte
 func (xhs *XHttpServer) getData(rsp http.ResponseWriter, req *http.Request) (interface{}, error) {
 	response := &Response{Code: RES_OK}
 	type GetContentReq struct {
-		GroupID int64 `json:"groupID"`
+		GroupID        int64 `json:"groupID"`
+		ContentGroupID int64 `json:"contentGroupID"`
 	}
 	var info GetContentReq
 	if err := xhs.decodeBody(req, &info, nil); err != nil {
@@ -311,7 +312,7 @@ func (xhs *XHttpServer) getData(rsp http.ResponseWriter, req *http.Request) (int
 		return response, nil
 	}
 
-	data, err := xhs.logic.GetContent(info.GroupID, strings.Split(req.RemoteAddr, ":")[0])
+	data, err := xhs.logic.GetContent(info.GroupID, info.ContentGroupID, strings.Split(req.RemoteAddr, ":")[0])
 	if err != nil {
 		response.Code = RES_ERR
 		response.Msg = fmt.Sprintf("get content failed: %v", err)
@@ -338,20 +339,20 @@ func (xhs *XHttpServer) setDomainStatus(rsp http.ResponseWriter, req *http.Reque
 	}
 	domain = domainV[0]
 	status, _ = strconv.ParseInt(statusV[0], 10, 0)
-	
+
 	response := &Response{Code: RES_OK}
 	info := &DomainInfo{
 		Domain: domain,
 		Status: status,
 	}
-	
+
 	err := xhs.logic.cdb.UpdateDomainsStatus(info)
 	if err != nil {
 		response.Code = RES_ERR
 		response.Msg = fmt.Sprintf("set domain failed: %v", err)
 		return response, nil
 	}
-	
+
 	return response, nil
 }
 
@@ -375,7 +376,7 @@ func (xhs *XHttpServer) getAllDomains(rsp http.ResponseWriter, req *http.Request
 	//}
 	//offset, _ = strconv.ParseInt(offsetV[0], 10, 0)
 	//num, _ = strconv.ParseInt(numV[0], 10, 0)
-	
+
 	list, err := xhs.logic.cdb.GetAllDomain()
 	if err != nil {
 		rsp.WriteHeader(500)
@@ -383,11 +384,11 @@ func (xhs *XHttpServer) getAllDomains(rsp http.ResponseWriter, req *http.Request
 		return
 	}
 	type HtmlDomains struct {
-		Title string
+		Title   string
 		Domains []string
 	}
 	htmlDomains := &HtmlDomains{
-		Title: "domains",
+		Title:   "domains",
 		Domains: list,
 	}
 	tpl, err := template.New("domains.tpl").ParseFiles(xhs.logic.cfg.DomainsTpl)
