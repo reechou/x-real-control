@@ -1,13 +1,13 @@
 package controller
 
 import (
+	"bytes"
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
-	"bytes"
 
-	"github.com/reechou/x-real-control/utils"
 	"github.com/reechou/x-real-control/config"
+	"github.com/reechou/x-real-control/utils"
 )
 
 const (
@@ -19,8 +19,8 @@ const (
 type DomainCheckHealth struct {
 	groupInfo  *DomainGroupInfo
 	updateTime int64
-	
-	cfg *config.Config
+
+	cfg         *config.Config
 	checkUrlIdx int
 
 	cdb   *ControllerDB
@@ -113,9 +113,9 @@ func (dch *DomainCheckHealth) onCheck() {
 }
 
 const (
-	DOMAIN_CHECK_OK = "[0]"
-	DOMAIN_CHECK_GRAY = "[1]"
-	DOMAIN_CHECK_BLACK = "[2]"
+	DOMAIN_CHECK_OK          = "[0]"
+	DOMAIN_CHECK_GRAY        = "[1]"
+	DOMAIN_CHECK_BLACK       = "[2]"
 	DOMAIN_CHECK_QUERY_ERROR = "[3]"
 )
 
@@ -130,7 +130,7 @@ func (dch *DomainCheckHealth) checkHealthV2(info *DomainInfo) bool {
 		plog.Errorf("check health[%s] error: %v\n", info.Domain, err)
 		return false
 	}
-	
+
 	rsp, err := dch.client.Do(req)
 	defer func() {
 		if rsp != nil {

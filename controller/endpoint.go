@@ -7,7 +7,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strconv"
-	"strings"
 )
 
 func (xhs *XHttpServer) addDomainGroup(rsp http.ResponseWriter, req *http.Request) (interface{}, error) {
@@ -289,7 +288,9 @@ func (xhs *XHttpServer) getURL(rsp http.ResponseWriter, req *http.Request) (inte
 		response.Msg = fmt.Sprintf("Request decode failed: %v", err)
 		return response, nil
 	}
+	clientInfo := xhs.GetClientInfo(req)
 	plog.Debugf("get_url: group_ID[%d] type[%d]\n", info.GroupID, info.Type)
+	plog.Debugf("get_url: client_info: %v\n", clientInfo)
 
 	data, err := xhs.logic.GetDomainInfo(info.GroupID, info.Type)
 	if err != nil {
@@ -314,8 +315,10 @@ func (xhs *XHttpServer) getData(rsp http.ResponseWriter, req *http.Request) (int
 		response.Msg = fmt.Sprintf("Request decode failed: %v", err)
 		return response, nil
 	}
+	clientInfo := xhs.GetClientInfo(req)
+	plog.Debugf("get_data: client_info: %v\n", clientInfo)
 
-	data, err := xhs.logic.GetContent(info.GroupID, info.ContentGroupID, strings.Split(req.RemoteAddr, ":")[0])
+	data, err := xhs.logic.GetContent(info.GroupID, info.ContentGroupID, clientInfo.IP)
 	if err != nil {
 		response.Code = RES_ERR
 		response.Msg = fmt.Sprintf("get content failed: %v", err)

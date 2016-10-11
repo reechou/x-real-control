@@ -119,3 +119,17 @@ func (xhs *XHttpServer) decodeBody(req *http.Request, out interface{}, cb func(i
 
 	return mapstructure.Decode(raw, out)
 }
+
+type ClientInfo struct {
+	IP        string
+	UserAgent string
+	Referrer  string
+}
+
+func (xhs *XHttpServer) GetClientInfo(req *http.Request) *ClientInfo {
+	return &ClientInfo{
+		IP:        strings.Split(req.RemoteAddr, ":")[0],
+		UserAgent: req.UserAgent(),
+		Referrer:  req.Referer(),
+	}
+}
