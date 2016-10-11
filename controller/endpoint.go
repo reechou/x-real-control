@@ -277,6 +277,8 @@ func (xhs *XHttpServer) getContentList(rsp http.ResponseWriter, req *http.Reques
 
 func (xhs *XHttpServer) getURL(rsp http.ResponseWriter, req *http.Request) (interface{}, error) {
 	response := &Response{Code: RES_OK}
+	// type = 0: show domain url
+	// type = 1: jump domain url
 	type GetURLReq struct {
 		GroupID int64 `json:"groupID"`
 		Type    int64 `json:"type"`
@@ -287,6 +289,7 @@ func (xhs *XHttpServer) getURL(rsp http.ResponseWriter, req *http.Request) (inte
 		response.Msg = fmt.Sprintf("Request decode failed: %v", err)
 		return response, nil
 	}
+	plog.Debugf("get_url: group_ID[%d] type[%d]\n", info.GroupID, info.Type)
 
 	data, err := xhs.logic.GetDomainInfo(info.GroupID, info.Type)
 	if err != nil {
